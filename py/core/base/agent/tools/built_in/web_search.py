@@ -8,8 +8,8 @@ logger = logging.getLogger(__name__)
 
 class WebSearchTool(Tool):
     """
-    A web search tool that uses Serper to perform Google searches and returns
-    the most relevant results.
+    A web search tool that supports multiple providers (SerpApi, Serper) to perform
+    Google searches and returns the most relevant results.
     """
 
     def __init__(self):
@@ -59,6 +59,7 @@ class WebSearchTool(Tool):
 
         if use_serpapi:
             try:
+                logger.info(f"Performing web search for '{query}' using SerpApi.")
                 serpapi_client = SerpApiClient()
                 raw_results = await asyncio.get_event_loop().run_in_executor(
                     None,
@@ -72,6 +73,7 @@ class WebSearchTool(Tool):
                 use_serpapi = False
 
         if not use_serpapi:
+            logger.info(f"Performing web search for '{query}' using Serper.")
             serper_client = SerperClient()
             raw_results = await asyncio.get_event_loop().run_in_executor(
                 None,
