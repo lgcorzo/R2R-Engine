@@ -257,12 +257,6 @@ class WebSearchResult(R2RSerializable):
         related: list[RelatedSearchResult] = []
         paa: list[PeopleAlsoAskResult] = []
 
-        mapping = {
-            "organic": organic,
-            "relatedSearches": related,
-            "peopleAlsoAsk": paa,
-        }
-
         for result in results:
             result_type = result.get("type")
             if result_type == "organic":
