@@ -43,8 +43,8 @@ class WebSearchTool(Tool):
             AggregateSearchResult,
             WebSearchResult,
         )
-        from core.utils.serper import SerperClient
         from core.utils.serpapi import SerpApiClient
+        from core.utils.serper import SerperClient
 
         context = self.context
 
@@ -59,14 +59,17 @@ class WebSearchTool(Tool):
 
         if use_serpapi:
             try:
-                logger.info(f"Performing web search for '{query}' using SerpApi.")
+                logger.info(
+                    f"Performing web search for '{query}' using SerpApi."
+                )
                 serpapi_client = SerpApiClient()
                 raw_results = await asyncio.get_event_loop().run_in_executor(
                     None,
                     lambda: serpapi_client.get_raw(query),
                 )
                 web_response = await asyncio.get_event_loop().run_in_executor(
-                    None, lambda: WebSearchResult.from_serpapi_results(raw_results)
+                    None,
+                    lambda: WebSearchResult.from_serpapi_results(raw_results),
                 )
             except Exception as e:
                 logger.error(f"SerpApi failed: {e}. Falling back to Serper.")
