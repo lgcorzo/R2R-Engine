@@ -253,9 +253,9 @@ class WebSearchResult(R2RSerializable):
 
     @classmethod
     def from_serpapi_results(cls, results: list[dict]) -> "WebSearchResult":
-        organic = []
-        related = []
-        paa = []
+        organic: list[WebPageSearchResult] = []
+        related: list[RelatedSearchResult] = []
+        paa: list[PeopleAlsoAskResult] = []
 
         mapping = {
             "organic": organic,

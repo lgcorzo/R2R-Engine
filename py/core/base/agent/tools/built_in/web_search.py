@@ -1,4 +1,9 @@
+import logging
+import os
+
 from shared.abstractions.tool import Tool
+
+logger = logging.getLogger(__name__)
 
 
 class WebSearchTool(Tool):
