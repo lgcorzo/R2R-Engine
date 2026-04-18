@@ -261,6 +261,7 @@ class RAGAgentConfig(AgentConfig):
     stream: bool = False
     include_tools: bool = True
     max_iterations: int = 10
+    use_xml_tools: bool = False
     # tools: list[str] = [] # HACK - unused variable.
 
     # Default RAG tools
@@ -292,7 +293,9 @@ class RAGAgentConfig(AgentConfig):
             for k, v in kwargs.items()
             if k in base_args
         }
-        filtered_kwargs["tools"] = kwargs.get("tools", None) or kwargs.get(
-            "tool_names", None
+        filtered_kwargs["rag_tools"] = (
+            kwargs.get("rag_tools", None)
+            or kwargs.get("tools", None)
+            or kwargs.get("tool_names", None)
         )
         return cls(**filtered_kwargs)  # type: ignore
