@@ -165,7 +165,8 @@ class Agent(ABC):
                     }
                     for tool in self.tools
                 ]
-                if self.tools and not getattr(self.config, "use_xml_tools", False)
+                if self.tools
+                and not getattr(self.config, "use_xml_tools", False)
                 else None
             ),
             stream=stream,

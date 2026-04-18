@@ -1,7 +1,7 @@
 import json
 import logging
 from datetime import datetime
-from typing import Callable, Optional
+from typing import Any, Callable, Optional, cast
 
 from core.base import (
     format_search_results_for_llm,
@@ -11,6 +11,7 @@ from core.base.abstractions import (
     GenerationConfig,
     SearchSettings,
 )
+from core.base.agent import RAGAgentConfig
 from core.base.agent.tools.registry import ToolRegistry
 from core.base.providers import DatabaseProvider
 from core.providers import (
@@ -23,8 +24,6 @@ from core.utils import (
     SearchResultsCollector,
     num_tokens,
 )
-
-from ..base.agent.agent import RAGAgentConfig
 
 # Import the base classes from the refactored base file
 from .base import (
@@ -103,30 +102,43 @@ class RAGAgentMixin:
     async def _setup(
         self, system_instruction: Optional[str] = None, *args, **kwargs
     ):
+        this = cast(Any, self)
+        config = this.config
         if (
-            getattr(self.config, "use_xml_tools", False)
+            config
+            and getattr(config, "use_xml_tools", False)
             and not system_instruction
         ):
             # Fetch the dynamic prompt for XML agents
-            system_instruction = (
-                await self.database_provider.prompts_handler.get_cached_prompt(
-                    self.config.rag_agent_dynamic_prompt,
-                    inputs={"date": str(datetime.now().strftime("%m/%d/%Y"))},
+            database_provider = this.database_provider
+            if database_provider:
+                system_instruction = (
+                    await database_provider.prompts_handler.get_cached_prompt(
+                        config.rag_agent_dynamic_prompt,
+                        inputs={
+                            "date": str(datetime.now().strftime("%m/%d/%Y"))
+                        },
+                    )
                 )
-            )
 
-            # Append tool definitions
-            tool_definitions = "\n".join(
-                [
-                    f"- {tool.name}: {tool.description}\n  Parameters: {json.dumps(tool.parameters)}"
-                    for tool in self._tools
-                ]
-            )
-            system_instruction += (
-                f"\n\nYou have access to the following tools:\n{tool_definitions}\n"
-            )
+                # Append tool definitions
+                tools = this._tools
+                new_instruction = (
+                    "\n\nYou have access to the following tools:\n"
+                    + "\n".join(
+                        [
+                            f"- {tool.name}: {tool.description}\n  Parameters: {json.dumps(tool.parameters)}"
+                            for tool in tools
+                        ]
+                    )
+                    + "\n"
+                )
+                system_instruction = (
+                    system_instruction or ""
+                ) + new_instruction
 
-        await super()._setup(system_instruction, *args, **kwargs)
+        # mypy: RAGAgentMixin does not have _setup, but the classes it is mixed into do.
+        await super()._setup(system_instruction, *args, **kwargs)  # type: ignore
 
     def format_search_results_for_llm(
         self, results: AggregateSearchResult

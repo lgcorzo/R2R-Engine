@@ -3,6 +3,7 @@ from .agent import (  # type: ignore
     Agent,
     AgentConfig,
     Conversation,
+    RAGAgentConfig,
 )
 
 __all__ = [
@@ -10,4 +11,5 @@ __all__ = [
     "Agent",
     "AgentConfig",
     "Conversation",
+    "RAGAgentConfig",
 ]

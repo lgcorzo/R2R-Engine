@@ -4,7 +4,7 @@ import subprocess
 import sys
 import tempfile
 from copy import copy
-from typing import Any, Callable, Optional
+from typing import Any, Callable, Optional, cast
 
 from core.base import AppConfig
 from core.base.abstractions import GenerationConfig, Message, SearchSettings
@@ -212,15 +212,21 @@ class ResearchAgentMixin(RAGAgentMixin):
         **kwargs,
     ) -> dict[str, Any]:
         """Execute a search using an internal RAG agent."""
+        # mypy: Mixin access to self attributes
+        this = cast(Any, self)
+        config = this.config
+        if not config:
+            raise ValueError("Config not found in ResearchAgentMixin")
+
         # Create a copy of the current configuration for the RAG agent
-        config_copy = copy(self.config)
+        config_copy = copy(config)
         config_copy.max_iterations = 10  # Could be configurable
 
         # Always include critical web search tools
         default_tools = ["web_search", "web_scrape"]
 
         # Get the configured RAG tools from the original config
-        configured_tools = set(self.config.rag_tools or default_tools)
+        configured_tools = set(config.rag_tools or default_tools)
 
         # Combine default tools with all configured tools, ensuring no duplicates
         config_copy.rag_tools = list(
@@ -230,22 +236,31 @@ class ResearchAgentMixin(RAGAgentMixin):
         logger.debug(f"Using RAG tools: {config_copy.rag_tools}")
 
         # Create a generation config for the RAG agent
+        app_config = this.app_config
+        llm_provider = this.llm_provider
+        database_provider = this.database_provider
+
+        if not all([app_config, llm_provider, database_provider]):
+            raise ValueError(
+                "Required providers not found in ResearchAgentMixin"
+            )
+
         generation_config = GenerationConfig(
-            model=self.app_config.quality_llm,
+            model=app_config.quality_llm,
             max_tokens_to_sample=16000,
         )
 
         # Create a new RAG agent - we'll use the non-streaming variant for consistent results
         rag_agent = R2RRAGAgent(
-            database_provider=self.database_provider,
-            llm_provider=self.llm_provider,
+            database_provider=database_provider,
+            llm_provider=llm_provider,
             config=config_copy,
-            search_settings=self.search_settings,
+            search_settings=this.search_settings,
             rag_generation_config=generation_config,
-            knowledge_search_method=self.knowledge_search_method,
-            content_method=self.content_method,
-            file_search_method=self.file_search_method,
-            max_tool_context_length=self.max_tool_context_length,
+            knowledge_search_method=this.knowledge_search_method,
+            content_method=this.content_method,
+            file_search_method=this.file_search_method,
+            max_tool_context_length=this.max_tool_context_length,
         )
 
         # Run the RAG agent with the query
@@ -285,11 +300,26 @@ class ResearchAgentMixin(RAGAgentMixin):
         **kwargs,
     ) -> dict[str, Any]:
         """Execute a reasoning query using a specialized reasoning LLM."""
-        msg_list = await self.conversation.get_messages()
+        this = cast(Any, self)
+        conversation = this.conversation
+        llm_provider = this.llm_provider
+        app_config = this.app_config
+
+        if not all([conversation, llm_provider, app_config]):
+            raise ValueError(
+                "Required attributes not found in ResearchAgentMixin"
+            )
+
+        msg_list = await conversation.get_messages()
 
         # Create a specialized generation config for reasoning
-        gen_cfg = self.get_generation_config(msg_list[-1], stream=False)
-        gen_cfg.model = self.app_config.reasoning_llm
+        # get_generation_config is from the Agent class
+        get_gen_cfg = getattr(this, "get_generation_config", None)
+        if not get_gen_cfg:
+            raise ValueError("get_generation_config not found")
+
+        gen_cfg = get_gen_cfg(msg_list[-1], stream=False)
+        gen_cfg.model = app_config.reasoning_llm
         gen_cfg.top_p = None
         gen_cfg.temperature = 0.1
         gen_cfg.max_tokens_to_sample = 64000
@@ -300,7 +330,7 @@ class ResearchAgentMixin(RAGAgentMixin):
         gen_cfg.add_generation_kwargs = None
 
         # Call the LLM with the reasoning request
-        response = await self.llm_provider.aget_completion(
+        response = await llm_provider.aget_completion(
             [{"role": "user", "content": query}], gen_cfg
         )
         return response.choices[0].message.content
@@ -313,7 +343,12 @@ class ResearchAgentMixin(RAGAgentMixin):
         **kwargs,
     ) -> dict[str, Any]:
         """Critique the conversation history."""
-        msg_list = await self.conversation.get_messages()
+        this = cast(Any, self)
+        conversation = this.conversation
+        if not conversation:
+            raise ValueError("Conversation not found in ResearchAgentMixin")
+
+        msg_list = await conversation.get_messages()
         if not focus_areas:
             focus_areas = []
         # Build the critique prompt
