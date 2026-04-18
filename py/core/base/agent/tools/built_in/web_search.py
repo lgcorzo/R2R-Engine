@@ -39,19 +39,38 @@ class WebSearchTool(Tool):
             WebSearchResult,
         )
         from core.utils.serper import SerperClient
+        from core.utils.serpapi import SerpApiClient
 
         context = self.context
 
-        serper_client = SerperClient()
+        # Try SerpApi first if SERPAPI_API_KEY is present, 
+        # or if we suspect the key in SERPER_API_KEY is actually a SerpApi key.
+        # Given the current cluster state, we know the key in SERPER_API_KEY is SerpApi.
+        use_serpapi = os.getenv("SERPAPI_API_KEY") is not None or os.getenv("SERPER_API_KEY") is not None
+        
+        if use_serpapi:
+            try:
+                serpapi_client = SerpApiClient()
+                raw_results = await asyncio.get_event_loop().run_in_executor(
+                    None,
+                    lambda: serpapi_client.get_raw(query),
+                )
+                web_response = await asyncio.get_event_loop().run_in_executor(
+                    None, lambda: WebSearchResult.from_serpapi_results(raw_results)
+                )
+            except Exception as e:
+                logger.error(f"SerpApi failed: {e}. Falling back to Serper.")
+                use_serpapi = False
 
-        raw_results = await asyncio.get_event_loop().run_in_executor(
-            None,
-            lambda: serper_client.get_raw(query),
-        )
-
-        web_response = await asyncio.get_event_loop().run_in_executor(
-            None, lambda: WebSearchResult.from_serper_results(raw_results)
-        )
+        if not use_serpapi:
+            serper_client = SerperClient()
+            raw_results = await asyncio.get_event_loop().run_in_executor(
+                None,
+                lambda: serper_client.get_raw(query),
+            )
+            web_response = await asyncio.get_event_loop().run_in_executor(
+                None, lambda: WebSearchResult.from_serper_results(raw_results)
+            )
 
         result = AggregateSearchResult(
             web_search_results=[web_response],

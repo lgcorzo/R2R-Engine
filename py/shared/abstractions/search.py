@@ -251,6 +251,46 @@ class WebSearchResult(R2RSerializable):
             people_also_ask=paa,
         )
 
+    @classmethod
+    def from_serpapi_results(cls, results: list[dict]) -> "WebSearchResult":
+        organic = []
+        related = []
+        paa = []
+
+        mapping = {
+            "organic": organic,
+            "relatedSearches": related,
+            "peopleAlsoAsk": paa,
+        }
+
+        for result in results:
+            result_type = result.get("type")
+            if result_type == "organic":
+                organic.append(
+                    WebPageSearchResult(
+                        **result, id=generate_id_from_label(result.get("link"))
+                    )
+                )
+            elif result_type == "relatedSearches":
+                related.append(
+                    RelatedSearchResult(
+                        **result,
+                        id=generate_id_from_label(result.get("query")),
+                    )
+                )
+            elif result_type == "peopleAlsoAsk":
+                paa.append(
+                    PeopleAlsoAskResult(
+                        **result, id=generate_id_from_label(result.get("link"))
+                    )
+                )
+
+        return cls(
+            organic_results=organic,
+            related_searches=related,
+            people_also_ask=paa,
+        )
+
 
 class AggregateSearchResult(R2RSerializable):
     """Result of an aggregate search operation."""
