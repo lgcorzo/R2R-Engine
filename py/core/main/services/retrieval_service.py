@@ -122,11 +122,8 @@ class AgentFactory:
                 agent_config.research_tools = tools
             # If neither was provided, the config's default research_tools will be used
 
-        # Determine if we need XML-based tools based on model
-        use_xml_format = False
-        # if generation_config.model:
-        #     model_str = generation_config.model.lower()
-        #     use_xml_format = "deepseek" in model_str or "gemini" in model_str
+        # Determine if we need XML-based tools based on configuration
+        use_xml_format = agent_config.use_xml_tools
 
         # Set streaming mode based on generation config
         is_streaming = generation_config.stream
