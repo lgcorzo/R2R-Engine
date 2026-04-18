@@ -26,42 +26,44 @@ class SerpApiClient:
             "source": "r2r",
         }
         url_params = urllib.parse.urlencode(params)
-        
+
         connection = HTTPSConnection(self.api_base)
         connection.request("GET", f"/search?{url_params}")
-        
+
         response = connection.getresponse()
         if response.status != 200:
-            logger.error(f"SerpApi returned status {response.status}: {response.read().decode()}")
+            logger.error(
+                f"SerpApi returned status {response.status}: {response.read().decode()}"
+            )
             return []
 
         data = response.read()
         json_data = json.loads(data.decode("utf-8"))
-        
+
         return self._extract_results(json_data)
 
     def _extract_results(self, json_data: dict) -> list:
         results = []
-        
+
         # Organic results
         if "organic_results" in json_data:
             for res in json_data["organic_results"]:
                 res["type"] = "organic"
                 results.append(res)
-                
+
         # Related searches
         if "related_searches" in json_data:
             for res in json_data["related_searches"]:
                 res["type"] = "relatedSearches"
                 results.append(res)
-                
+
         # People also ask
         if "questions_and_answers" in json_data:
             for res in json_data["questions_and_answers"]:
                 res["type"] = "peopleAlsoAsk"
                 results.append(res)
         elif "related_questions" in json_data:
-             for res in json_data["related_questions"]:
+            for res in json_data["related_questions"]:
                 res["type"] = "peopleAlsoAsk"
                 results.append(res)
 

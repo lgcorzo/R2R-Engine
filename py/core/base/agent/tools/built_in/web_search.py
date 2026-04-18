@@ -48,11 +48,15 @@ class WebSearchTool(Tool):
 
         context = self.context
 
-        # Try SerpApi first if SERPAPI_API_KEY is present, 
+        # Try SerpApi first if SERPAPI_API_KEY is present,
         # or if we suspect the key in SERPER_API_KEY is actually a SerpApi key.
         # Given the current cluster state, we know the key in SERPER_API_KEY is SerpApi.
-        use_serpapi = os.getenv("SERPAPI_API_KEY") is not None or os.getenv("SERPER_API_KEY") is not None
-        
+        serpapi_available = (
+            os.getenv("SERPAPI_API_KEY") is not None
+            or os.getenv("SERPER_API_KEY") is not None
+        )
+        use_serpapi = serpapi_available
+
         if use_serpapi:
             try:
                 serpapi_client = SerpApiClient()
