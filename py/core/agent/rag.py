@@ -1,5 +1,6 @@
-# type: ignore
+import json
 import logging
+from datetime import datetime
 from typing import Callable, Optional
 
 from core.base import (
@@ -98,6 +99,34 @@ class RAGAgentMixin:
                 logger.warning(f"Unknown tool requested: {tool_name}")
 
         logger.debug(f"Registered {len(self._tools)} RAG tools.")
+
+    async def _setup(
+        self, system_instruction: Optional[str] = None, *args, **kwargs
+    ):
+        if (
+            getattr(self.config, "use_xml_tools", False)
+            and not system_instruction
+        ):
+            # Fetch the dynamic prompt for XML agents
+            system_instruction = (
+                await self.database_provider.prompts_handler.get_cached_prompt(
+                    self.config.rag_agent_dynamic_prompt,
+                    inputs={"date": str(datetime.now().strftime("%m/%d/%Y"))},
+                )
+            )
+
+            # Append tool definitions
+            tool_definitions = "\n".join(
+                [
+                    f"- {tool.name}: {tool.description}\n  Parameters: {json.dumps(tool.parameters)}"
+                    for tool in self._tools
+                ]
+            )
+            system_instruction += (
+                f"\n\nYou have access to the following tools:\n{tool_definitions}\n"
+            )
+
+        await super()._setup(system_instruction, *args, **kwargs)
 
     def format_search_results_for_llm(
         self, results: AggregateSearchResult
