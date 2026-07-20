@@ -881,7 +881,7 @@ class UsersRouter(BaseRouterV3):
         @self.base_endpoint
         async def get_user(
             id: UUID = Path(
-                ..., example="550e8400-e29b-41d4-a716-446655440000"
+                ..., examples=["550e8400-e29b-41d4-a716-446655440000"]
             ),
             auth_user=Depends(self.providers.auth.auth_wrapper()),
         ) -> WrappedUserResponse:
@@ -947,7 +947,7 @@ class UsersRouter(BaseRouterV3):
         @self.base_endpoint
         async def delete_user(
             id: UUID = Path(
-                ..., example="550e8400-e29b-41d4-a716-446655440000"
+                ..., examples=["550e8400-e29b-41d4-a716-446655440000"]
             ),
             password: Optional[str] = Body(
                 None, description="User's current password"
@@ -1029,7 +1029,7 @@ class UsersRouter(BaseRouterV3):
         @self.base_endpoint
         async def get_user_collections(
             id: UUID = Path(
-                ..., example="550e8400-e29b-41d4-a716-446655440000"
+                ..., examples=["550e8400-e29b-41d4-a716-446655440000"]
             ),
             offset: int = Query(
                 0,
@@ -1117,10 +1117,10 @@ class UsersRouter(BaseRouterV3):
         @self.base_endpoint
         async def add_user_to_collection(
             id: UUID = Path(
-                ..., example="550e8400-e29b-41d4-a716-446655440000"
+                ..., examples=["550e8400-e29b-41d4-a716-446655440000"]
             ),
             collection_id: UUID = Path(
-                ..., example="750e8400-e29b-41d4-a716-446655440000"
+                ..., examples=["750e8400-e29b-41d4-a716-446655440000"]
             ),
             auth_user=Depends(self.providers.auth.auth_wrapper()),
         ) -> WrappedBooleanResponse:
@@ -1187,10 +1187,10 @@ class UsersRouter(BaseRouterV3):
         @self.base_endpoint
         async def remove_user_from_collection(
             id: UUID = Path(
-                ..., example="550e8400-e29b-41d4-a716-446655440000"
+                ..., examples=["550e8400-e29b-41d4-a716-446655440000"]
             ),
             collection_id: UUID = Path(
-                ..., example="750e8400-e29b-41d4-a716-446655440000"
+                ..., examples=["750e8400-e29b-41d4-a716-446655440000"]
             ),
             auth_user=Depends(self.providers.auth.auth_wrapper()),
         ) -> WrappedBooleanResponse:

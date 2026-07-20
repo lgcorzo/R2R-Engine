@@ -838,32 +838,35 @@ class RetrievalRouter(BaseRouterV3):
         async def completion(
             messages: list[Message] = Body(
                 ...,
-                description="List of messages to generate completion for",
-                example=[
-                    {
-                        "role": "system",
-                        "content": "You are a helpful assistant.",
-                    },
-                    {
-                        "role": "user",
-                        "content": "What is the capital of France?",
-                    },
-                    {
-                        "role": "assistant",
-                        "content": "The capital of France is Paris.",
-                    },
-                    {"role": "user", "content": "What about Italy?"},
+                examples=[
+                    [
+                        {
+                            "role": "system",
+                            "content": "You are a helpful assistant.",
+                        },
+                        {
+                            "role": "user",
+                            "content": "What is the capital of France?",
+                        },
+                        {
+                            "role": "assistant",
+                            "content": "The capital of France is Paris.",
+                        },
+                        {"role": "user", "content": "What about Italy?"},
+                    ]
                 ],
             ),
             generation_config: GenerationConfig = Body(
                 default_factory=GenerationConfig,
                 description="Configuration for text generation",
-                example={
-                    "model": "openai/gpt-4.1-mini",
-                    "temperature": 0.7,
-                    "max_tokens": 150,
-                    "stream": False,
-                },
+                examples=[
+                    {
+                        "model": "openai/gpt-4.1-mini",
+                        "temperature": 0.7,
+                        "max_tokens": 150,
+                        "stream": False,
+                    }
+                ],
             ),
             auth_user=Depends(self.providers.auth.auth_wrapper()),
             response_model=WrappedCompletionResponse,
