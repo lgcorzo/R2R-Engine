@@ -192,7 +192,3 @@ client.documents.list()
 - Submit [feature requests](https://github.com/SciPhi-AI/R2R/issues/new?assignees=&labels=&projects=&template=feature_request.md&title=) or [bug reports](https://github.com/SciPhi-AI/R2R/issues/new?assignees=&labels=&projects=&template=bug_report.md&title=)
 - Open PRs for new features, improvements, or documentation
 
-### Our Contributors
-<a href="https://github.com/SciPhi-AI/R2R/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=SciPhi-AI/R2R" />
-</a>
