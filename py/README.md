@@ -28,6 +28,79 @@ R2R is an advanced AI retrieval system supporting Retrieval-Augmented Generation
 
 R2R also includes a **Deep Research API**, a multi-step reasoning system that fetches relevant data from your knowledgebase and/or the internet to deliver richer, context-aware answers for complex queries.
 
+---
+
+## 🏭 Dark Gravity Autonomous CA/CD Factory Integration
+
+In the **Dark Gravity Autonomous CA/CD Software Factory (V7.2 / V7.3)**, **R2R (Rag-to-Riches / R2R GraphRAG)** serves as the living **Semantic Corporate Memory**. It eliminates "documentary amnesia" and prompt context bloat by maintaining a persistent, queryable vector and topological representation of the entire evolving codebase.
+
+<p align="center">
+  <img src="docs/images/r2r_dark_factory_architecture.png" alt="Dark Gravity Factory - R2R Architecture" width="100%" />
+</p>
+
+### 📐 System Architecture & Cluster Topology
+
+* **Service Deployment**: Deployed as a high-availability microservice in the `llm-apps` Kubernetes namespace (`r2r.llm-apps.svc.cluster.local:7272`), protected by OpenZiti zero-trust overlay network sidecars and OAuth2-Proxy / Nginx authentication layers.
+* **CloudNativePG & `pgvector` Storage**: Backed by a high-availability CloudNativePG PostgreSQL 16 cluster (`mlflow-db`) in the `storage` namespace running the `pgvector` extension.
+* **Read-Replica Query Scaling**: Vector similarity searches are automatically routed to CloudNativePG read replicas (`mlflow-db-ro` via `r2r-read-replica-service`), preventing lock contention and reserving primary instances for Hatchet workflow engine transactions.
+* **Rust Workspace Client**: Native asynchronous client implemented in `crates/factory-infrastructure/src/r2r.rs` (`HttpR2rClient` / `R2rClient`) supporting JWT authentication, vector similarity searches, atomic upserts, and telemetry metrics.
+
+---
+
+### ⚡ lgcorzo Features & Enhancements
+
+#### 1. AST Delta Processing (`deepwiki-rs`)
+Whenever code merges occur, `deepwiki-rs` (a native Rust Tree-sitter AST parser) extracts syntax tree deltas and symbol dependency relationships (`depends_on`). These AST deltas are converted into vector embeddings and upserted into R2R's `pgvector` store without requiring full repository re-indexing.
+
+#### 2. Three-Level Context Pruning Engine
+To eliminate prompt context bloat and optimize LLM token efficiency, R2R integrates with the `retrieve_context` MCP tool (`factory-mcp-server/src/skills/context.rs`) using a 3-tier filtering pipeline:
+
+<p align="center">
+  <img src="docs/images/r2r_context_pruning_workflow.png" alt="R2R 3-Level Context Pruning Workflow" width="100%" />
+</p>
+
+1. **Semantic Filtering**: Discards matches with a cosine similarity distance below a strict quality threshold.
+2. **Structural Pruning**: Traverses the AST dependency graph to prune out nodes that do not fall on the direct execution/dependency path of the target Git diff.
+3. **Token Budget Clamping**: Truncates and formats the remaining context to fit within strict LLM buffer limits, preventing prompt overflow and runaway inference spend.
+
+#### 3. Orphan Symbol Rate (OSR) Telemetry Gate
+`R2rClient` implements `push_osr_metric()`, which tracks documentation drift across merges. It computes the ratio of compiled AST code symbols versus symbols documented in Wiki pages, enforcing an **OSR < 5%** quality gate before allowing automated documentation commits.
+
+#### 4. Open Knowledge Format (OKF) Ingestion
+R2R natively ingests documentation formatted according to the **Open Knowledge Format (OKF)** specification:
+* Parses YAML frontmatter metadata (`type`, `mission_id`, `tags`, `source_path`) directly into `pgvector` metadata columns.
+* Enables hybrid retrieval combining geometric vector similarity with deterministic SQL metadata filters (e.g. `WHERE type = 'architecture' AND tags IN ('database')`).
+
+---
+
+### 🔄 Multi-Agent Integration & Use Cases
+
+```mermaid
+flowchart TD
+    A["Kafka / Webhook Trigger"] --> B["Hatchet 6-Phase DAG"]
+    B -->|Phase 1: Plan| C["Rustant PO Agent"]
+    C -->|Query retrieve_context| D[("R2R GraphRAG & pgvector")]
+    C -->|Generate Spec-Kit| E["spec.md / plan.md / tasks.md"]
+    E -->|Phase 2: Code| F["ZeroClaw Dev Agent"]
+    F -->|Surgical AST Edits| G["gVisor Sandbox"]
+    G -->|Phase 3: Validate| H["cargo test / pytest"]
+    H -->|Phase 4: Review| I["Semantica Causal Provenance & Aethelgard SAST"]
+    I -->|Phase 5: Deliver| J["Automated PR / Delivery"]
+    J -->|Post-Merge Sync| K["Documentation Agent & deepwiki-rs"]
+    K -->|Upsert AST Deltas & Verify OSR < 5%| D
+```
+
+| Agent / Subsystem | Interaction Pattern | Key Benefit |
+| :--- | :--- | :--- |
+| **Product Owner (Rustant)** | Queries `R2rClient::search()` during `/speckit-specify` and `/speckit-plan` | Grounds task specifications in real codebase symbols and avoids hallucinating legacy interfaces. |
+| **Developer (ZeroClaw)** | Queries R2R AST subgraphs before applying surgical find-and-replace patches | Ensures localized code edits inside gVisor sandboxes (≤ 30 MiB RAM) without loading whole repos into memory. |
+| **Documentation Agent** | Ingests AST deltas via `deepwiki-rs` and verifies `OSR < 5%` | Prevents documentation drift; guarantees Wiki models stay 100% in sync with code in `main`. |
+| **QA Observer Daemon** | Polls Sentry crash events every 15 min and vector searches stacktraces | Automatically maps production stacktraces to the exact source files and triggers automated hotfix workflows. |
+| **LiteLLM Gateway** | Routes pruned prompts with FinOps Virtual Tags (`FinOpsTag`) | Prevents context overflow and attributes inference costs directly back to specific Epics and missions. |
+| **Semantica-AGI** | Dual-memory overlay: R2R (geometric similarity) + Semantica (causal lineage) | Combines statistical semantic recall with deterministic causal provenance via Kafka `agent-thought`. |
+
+---
+
 # Usage
 
 ```python
