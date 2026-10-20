@@ -103,9 +103,7 @@ class SendGridEmailProvider(EmailProvider):
             else:
                 log_msg = f"Failed to send email. Status code: {response.status_code}"
                 logger.error(log_msg)
-                raise RuntimeError(
-                    f"{log_msg}, Body: {response.body}"
-                )
+                raise RuntimeError(f"{log_msg}, Body: {response.body}")
 
         except Exception as e:
             logger.error(f"Failed to send email: {str(e)}")

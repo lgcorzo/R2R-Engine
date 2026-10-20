@@ -2,6 +2,7 @@ import logging
 from unittest.mock import MagicMock, patch
 
 import pytest
+
 from core.base import EmailConfig
 from core.providers.email.mailersend import MailerSendEmailProvider
 from core.providers.email.sendgrid import SendGridEmailProvider
