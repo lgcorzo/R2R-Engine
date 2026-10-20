@@ -19,6 +19,9 @@ on:
       - 'tests/**'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   package-install-test:
     runs-on: ubuntu-latest
