@@ -130,12 +130,10 @@ class MailerSendEmailProvider(EmailProvider):
                 return
 
             # If we get here, it's an error
-            error_msg = f"MailerSend error: {response}"
-            logger.error(error_msg)
+            logger.error("MailerSend error occurred during email delivery")
 
         except Exception as e:
-            error_msg = f"Failed to send email to {to_email}: {str(e)}"
-            logger.error(error_msg)
+            logger.error(f"Failed to send email: {str(e)}")
 
     async def send_verification_email(
         self,
@@ -185,10 +183,7 @@ class MailerSendEmailProvider(EmailProvider):
                     body=f"Welcome to R2R! Please verify your email using this code: {verification_code}",
                 )
         except Exception as e:
-            error_msg = (
-                f"Failed to send verification email to {to_email}: {str(e)}"
-            )
-            logger.error(error_msg)
+            logger.error(f"Failed to send verification email: {str(e)}")
 
     async def send_password_reset_email(
         self,
@@ -233,10 +228,7 @@ class MailerSendEmailProvider(EmailProvider):
                     body=f"Reset your R2R password using this token: {reset_token}",
                 )
         except Exception as e:
-            error_msg = (
-                f"Failed to send password reset email to {to_email}: {str(e)}"
-            )
-            logger.error(error_msg)
+            logger.error(f"Failed to send password reset email: {str(e)}")
 
     async def send_password_changed_email(
         self,
@@ -276,6 +268,9 @@ class MailerSendEmailProvider(EmailProvider):
                     body=body,
                 )
         except Exception as e:
-            error_msg = f"Failed to send password change notification to {to_email}: {str(e)}"
-            logger.error(error_msg)
-            raise RuntimeError(error_msg) from e
+            logger.error(
+                f"Failed to send password change notification: {str(e)}"
+            )
+            raise RuntimeError(
+                f"Failed to send password change notification to {to_email}: {str(e)}"
+            ) from e

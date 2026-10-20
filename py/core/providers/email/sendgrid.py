@@ -101,14 +101,15 @@ class SendGridEmailProvider(EmailProvider):
             elif response.status_code == 202:
                 logger.info("Message sent successfully!")
             else:
-                error_msg = f"Failed to send email. Status code: {response.status_code}, Body: {response.body}"
-                logger.error(error_msg)
-                raise RuntimeError(error_msg)
+                log_msg = f"Failed to send email. Status code: {response.status_code}"
+                logger.error(log_msg)
+                raise RuntimeError(f"{log_msg}, Body: {response.body}")
 
         except Exception as e:
-            error_msg = f"Failed to send email to {to_email}: {str(e)}"
-            logger.error(error_msg)
-            raise RuntimeError(error_msg) from e
+            logger.error(f"Failed to send email: {str(e)}")
+            raise RuntimeError(
+                f"Failed to send email to {to_email}: {str(e)}"
+            ) from e
 
     async def send_verification_email(
         self,
@@ -158,11 +159,10 @@ class SendGridEmailProvider(EmailProvider):
                     body=f"Welcome to R2R! Please verify your email using this code: {verification_code}",
                 )
         except Exception as e:
-            error_msg = (
+            logger.error(f"Failed to send verification email: {str(e)}")
+            raise RuntimeError(
                 f"Failed to send verification email to {to_email}: {str(e)}"
-            )
-            logger.error(error_msg)
-            raise RuntimeError(error_msg) from e
+            ) from e
 
     async def send_password_reset_email(
         self,
@@ -207,11 +207,10 @@ class SendGridEmailProvider(EmailProvider):
                     body=f"Reset your R2R password using this token: {reset_token}",
                 )
         except Exception as e:
-            error_msg = (
+            logger.error(f"Failed to send password reset email: {str(e)}")
+            raise RuntimeError(
                 f"Failed to send password reset email to {to_email}: {str(e)}"
-            )
-            logger.error(error_msg)
-            raise RuntimeError(error_msg) from e
+            ) from e
 
     async def send_password_changed_email(
         self,
@@ -252,6 +251,9 @@ class SendGridEmailProvider(EmailProvider):
                     body=body,
                 )
         except Exception as e:
-            error_msg = f"Failed to send password change notification to {to_email}: {str(e)}"
-            logger.error(error_msg)
-            raise RuntimeError(error_msg) from e
+            logger.error(
+                f"Failed to send password change notification: {str(e)}"
+            )
+            raise RuntimeError(
+                f"Failed to send password change notification to {to_email}: {str(e)}"
+            ) from e
