@@ -1,5 +1,8 @@
 name: R2R Full Python Integration Test (ubuntu)
 
+permissions:
+  contents: read
+
 on:
   workflow_dispatch:
 
