@@ -17,6 +17,8 @@ jobs:
     permissions:
       contents: read
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       release_version: ${{ steps.version.outputs.RELEASE_VERSION }}
       matrix: ${{ steps.set-matrix.outputs.matrix }}
@@ -51,6 +53,8 @@ jobs:
       fail-fast: false
       matrix: ${{fromJson(needs.prepare.outputs.matrix)}}
     runs-on: ${{ matrix.runner }}
+    permissions:
+      contents: read
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -88,6 +92,8 @@ jobs:
       contents: read
     needs: [prepare, build]
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Docker Auth
         uses: docker/login-action@v3
@@ -113,6 +119,8 @@ jobs:
       contents: read
     needs: [create-manifest, prepare]
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Always succeed
         run: exit 0
