@@ -14,8 +14,6 @@ env:
 
 jobs:
   prepare:
-    permissions:
-      contents: read
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -46,8 +44,6 @@ jobs:
           echo "matrix={\"include\":[{\"platform\":\"amd64\",\"runner\":\"ubuntu-latest\"}]}" >> $GITHUB_OUTPUT
 
   build:
-    permissions:
-      contents: read
     needs: prepare
     strategy:
       fail-fast: false
@@ -88,8 +84,6 @@ jobs:
           sbom: false
 
   create-manifest:
-    permissions:
-      contents: read
     needs: [prepare, build]
     runs-on: ubuntu-latest
     permissions:
@@ -115,8 +109,6 @@ jobs:
           docker buildx imagetools inspect ${{ env.REGISTRY_IMAGE }}:latest
 
   success-check:
-    permissions:
-      contents: read
     needs: [create-manifest, prepare]
     runs-on: ubuntu-latest
     permissions:
