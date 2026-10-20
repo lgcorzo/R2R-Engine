@@ -108,7 +108,6 @@ logging.info(
 # Create the FastAPI app
 app = FastAPI(
     lifespan=lifespan,
-    log_config=None,
 )
 
 
