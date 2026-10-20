@@ -1,5 +1,8 @@
 name: R2R Light Python Integration Test (ubuntu)
 
+permissions:
+  contents: read
+
 on:
   push:
     branches:
