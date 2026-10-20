@@ -3,6 +3,9 @@ name: R2R Full Python Integration Test (ubuntu)
 on:
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   integration-test:
     runs-on: ubuntu-latest
