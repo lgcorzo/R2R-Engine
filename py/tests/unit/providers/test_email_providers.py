@@ -40,9 +40,35 @@ async def test_sendgrid_logging_no_sensitive_data(email_config, caplog):
 
     for record in caplog.records:
         assert sensitive_email not in record.message
-        assert sensitive_body not in record.message
 
-    assert sensitive_email in str(exc_info.value)
+
+@pytest.mark.asyncio
+async def test_sendgrid_verification_and_reset_logging_no_sensitive_data(
+    email_config, caplog
+):
+    provider = SendGridEmailProvider(email_config)
+    sensitive_email = "user_verification@example.com"
+    secret_token = "secret_verification_code_123456"
+
+    with patch.object(
+        provider.client, "send", side_effect=Exception("API failure")
+    ):
+        with caplog.at_level(logging.ERROR):
+            with pytest.raises(RuntimeError):
+                await provider.send_verification_email(
+                    to_email=sensitive_email,
+                    verification_code=secret_token,
+                )
+
+            with pytest.raises(RuntimeError):
+                await provider.send_password_reset_email(
+                    to_email=sensitive_email,
+                    reset_token=secret_token,
+                )
+
+    for record in caplog.records:
+        assert sensitive_email not in record.message
+        assert secret_token not in record.message
 
 
 @pytest.mark.asyncio

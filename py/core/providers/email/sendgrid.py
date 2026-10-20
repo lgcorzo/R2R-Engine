@@ -95,18 +95,18 @@ class SendGridEmailProvider(EmailProvider):
             response = await asyncio.to_thread(self.client.send, message)
 
             if response.status_code >= 400:
-                raise RuntimeError(
-                    f"Failed to send email: {response.status_code}"
-                )
+                log_msg = f"Failed to send email. Status code: {response.status_code}"
+                logger.error(log_msg)
+                raise RuntimeError(log_msg)
             elif response.status_code == 202:
                 logger.info("Message sent successfully!")
             else:
                 log_msg = f"Failed to send email. Status code: {response.status_code}"
                 logger.error(log_msg)
-                raise RuntimeError(f"{log_msg}, Body: {response.body}")
+                raise RuntimeError(log_msg)
 
         except Exception as e:
-            logger.error(f"Failed to send email: {str(e)}")
+            logger.error("Failed to send email")
             raise RuntimeError(
                 f"Failed to send email to {to_email}: {str(e)}"
             ) from e
@@ -159,7 +159,7 @@ class SendGridEmailProvider(EmailProvider):
                     body=f"Welcome to R2R! Please verify your email using this code: {verification_code}",
                 )
         except Exception as e:
-            logger.error(f"Failed to send verification email: {str(e)}")
+            logger.error("Failed to send verification email")
             raise RuntimeError(
                 f"Failed to send verification email to {to_email}: {str(e)}"
             ) from e
@@ -207,7 +207,7 @@ class SendGridEmailProvider(EmailProvider):
                     body=f"Reset your R2R password using this token: {reset_token}",
                 )
         except Exception as e:
-            logger.error(f"Failed to send password reset email: {str(e)}")
+            logger.error("Failed to send password reset email")
             raise RuntimeError(
                 f"Failed to send password reset email to {to_email}: {str(e)}"
             ) from e
@@ -251,9 +251,7 @@ class SendGridEmailProvider(EmailProvider):
                     body=body,
                 )
         except Exception as e:
-            logger.error(
-                f"Failed to send password change notification: {str(e)}"
-            )
+            logger.error("Failed to send password change notification")
             raise RuntimeError(
                 f"Failed to send password change notification to {to_email}: {str(e)}"
             ) from e
