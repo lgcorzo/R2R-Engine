@@ -73,7 +73,7 @@ class SendGridEmailProvider(EmailProvider):
             )
 
             if template_id:
-                logger.info(f"Using dynamic template with ID: {template_id}")
+                logger.info("Using dynamic template")
                 message.template_id = template_id
                 base_data = self._get_base_template_data(to_email)
                 message.dynamic_template_data = {
