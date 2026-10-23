@@ -92,6 +92,25 @@ async def test_sendgrid_exception_logging_no_pii(email_config, caplog):
 
 
 @pytest.mark.asyncio
+async def test_sendgrid_template_id_not_logged(email_config, caplog):
+    provider = SendGridEmailProvider(email_config)
+    sensitive_template_id = "d-1234567890secret_template_id"
+
+    mock_response = MagicMock()
+    mock_response.status_code = 202
+
+    with patch.object(provider.client, "send", return_value=mock_response):
+        with caplog.at_level(logging.INFO):
+            await provider.send_email(
+                to_email="test@example.com",
+                template_id=sensitive_template_id,
+            )
+
+    for record in caplog.records:
+        assert sensitive_template_id not in record.message
+
+
+@pytest.mark.asyncio
 async def test_mailersend_logging_no_sensitive_data(email_config, caplog):
     provider = MailerSendEmailProvider(email_config)
     sensitive_email = "sensitive_mailersend@example.com"
