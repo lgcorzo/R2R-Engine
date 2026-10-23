@@ -180,11 +180,17 @@ services:
       retries: 5
 
   r2r:
-    image: sciphiai/r2r:latest
+    image: ${R2R_IMAGE:-sciphiai/r2r:latest}
     ports:
       - "7272:7272"
     env_file:
       - ./env/r2r-full.env
+    environment:
+      - R2R_CONFIG_NAME=${R2R_CONFIG_NAME:-full}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - AZURE_API_KEY=${AZURE_API_KEY}
+      - AZURE_API_BASE=${AZURE_API_BASE}
+      - AZURE_API_VERSION=${AZURE_API_VERSION}
     command: sh /scripts/start-r2r.sh
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:7272/v3/health"]
