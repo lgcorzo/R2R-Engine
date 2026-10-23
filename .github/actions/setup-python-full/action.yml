@@ -19,16 +19,6 @@ runs:
         python-version: ${{ inputs.python-version }}
         cache: 'pip'
 
-    - name: Install R2R CLI & Python SDK
-      shell: bash
-      run: |
-        pip install r2r
-
-    - name: Install uv
-      shell: bash
-      run: |
-        pip install uv
-
     - name: Install uv
       shell: bash
       run: |
@@ -49,3 +39,4 @@ runs:
       working-directory: py
       run: |
         uv sync --extra core
+        uv pip install pip wheel
