@@ -28,13 +28,13 @@ jobs:
         with:
           config-name: r2r_ci_mock
       - name: Use Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
           node-version: "20.x"
       - name: Install pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v4
         with:
-          version: 8.x
+          version: 9
           run_install: false
       - name: Install JS SDK dependencies
         working-directory: ./js/sdk
@@ -88,13 +88,13 @@ jobs:
       - name: Start R2R Light server
         uses: ./.github/actions/start-r2r-light
       - name: Use Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4
         with:
           node-version: "20.x"
       - name: Install pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v4
         with:
-          version: 8.x
+          version: 9
           run_install: false
       - name: Install JS SDK dependencies
         working-directory: ./js/sdk
